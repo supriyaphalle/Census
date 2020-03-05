@@ -2,13 +2,8 @@ package censusanalyser;
 
 import com.google.gson.Gson;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 public class CensusAnalyser {
     Map<String, CensusDTO> censusMap;
@@ -18,45 +13,15 @@ public class CensusAnalyser {
         censusMap = new HashMap<>();
     }
 
-    public int loadIndiaCensusData(String csvFilePath)  {
-        censusMap= new censusLoader().loadCensusData(csvFilePath, IndiaCensusCSV.class);
+    public int loadIndiaCensusData(String... csvFilePath)  {
+        censusMap= new censusLoader().loadCensusData(IndiaCensusCSV.class, csvFilePath);
       //  indiaCensusDTOList = censusMap.values().stream().collect(Collectors.toList());
-
         return censusMap.size();
     }
     public int loadUsCensusData(String usCensusCsvFilePath) {
-        censusMap= new censusLoader().loadCensusData(usCensusCsvFilePath,UsCensusCSV.class);
-
-
+        censusMap= new censusLoader().loadCensusData(UsCensusCSV.class, usCensusCsvFilePath);
         return censusMap.size();
     }
-
-
-    public int loadIndianStateCodeData(String csvFilePath) throws CensusAnalyserException {
-        try (Reader reader = Files.newBufferedReader(Paths.get(csvFilePath))) {
-            ICSVBuilder csvBuilder = CSVBuilderFactory.createCSVBuilder();
-            Iterator<IndiaStateCodeCSV> censusCSVIterator = csvBuilder.getCSVFileIterator(reader, IndiaStateCodeCSV.class);
-            Iterable<IndiaStateCodeCSV> csvIterable = () -> censusCSVIterator;
-            StreamSupport.stream(csvIterable.spliterator(), false).count();
-            StreamSupport.stream(csvIterable.spliterator(), false)
-                    .filter(csvState -> censusMap.get(csvState.state) != null)
-                    .forEach(csvState -> censusMap.get(csvState.state).stateCode = csvState.stateCode);
-            return censusMap.size();
-           /*
-            while (censusCSVIterator.hasNext()) {
-                IndiaStateCodeCSV indiaStateCodeCSV = censusCSVIterator.next();
-                IndiaCensusDTO indiaCensusDTO = censusMap.get(indiaStateCodeCSV.state);
-                if (indiaCensusDTO==null)
-                    continue;
-            }
-            return censusMap.size();
-            */
-        } catch (IOException e) {
-            throw new CensusAnalyserException(e.getMessage(),
-                    CensusAnalyserException.ExceptionType.CENSUS_FILE_PROBLEM);
-        }
-    }
-
 
     public String getStateWiseSortedCensusData(String csvFilePath) {
         indiaCensusDTOList = censusMap.values().stream().collect(Collectors.toList());
@@ -81,7 +46,6 @@ public class CensusAnalyser {
             }
         }
     }
-
 
 }
 

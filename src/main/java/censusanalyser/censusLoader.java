@@ -6,16 +6,14 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 public class censusLoader {
-    public <E> Map loadCensusData(String csvFilePath, Class<E> censusCSV) {
+    public <E> Map loadCensusData(Class<E> censusCSV, String... csvFilePath) {
         Map<String, CensusDTO> censusMap=new HashMap<>();
        // List<CensusDTO> indiaCensusDTOList;
-        try (Reader reader = Files.newBufferedReader(Paths.get(csvFilePath))) {
+        try (Reader reader = Files.newBufferedReader(Paths.get(csvFilePath[0]))) {
             ICSVBuilder csvBuilder = CSVBuilderFactory.createCSVBuilder();
             Iterator<E> censusCSVIterator = csvBuilder.getCSVFileIterator(reader, censusCSV);
             Iterable<E> csvIterable = () -> censusCSVIterator;
@@ -34,8 +32,39 @@ public class censusLoader {
                 censusMap.put(indiaCensusCSV.state, new CensusDTO(indiaCensusCSV));
             }
            */
-            return censusMap;
+            if(csvFilePath.length == 1) {
+                return censusMap;
+            }
+            Map censusMap1 = this.loadIndianStateCodeData(censusMap, csvFilePath[1]);
 
+            return censusMap1;
+        } catch (IOException e) {
+            throw new CensusAnalyserException(e.getMessage(),
+                    CensusAnalyserException.ExceptionType.CENSUS_FILE_PROBLEM);
+        }
+    }
+
+
+
+    private <E> Map  loadIndianStateCodeData(Map<String, CensusDTO> censusMap, String csvFilePath) throws CensusAnalyserException {
+        try (Reader reader = Files.newBufferedReader(Paths.get(csvFilePath))) {
+            ICSVBuilder csvBuilder = CSVBuilderFactory.createCSVBuilder();
+            Iterator<IndiaStateCodeCSV> censusCSVIterator = csvBuilder.getCSVFileIterator(reader, IndiaStateCodeCSV.class);
+            Iterable<IndiaStateCodeCSV> csvIterable = () -> censusCSVIterator;
+            // StreamSupport.stream(csvIterable.spliterator(), false).count();
+            StreamSupport.stream(csvIterable.spliterator(), false)
+                    .filter(csvState -> censusMap.get(csvState.state) != null)
+                    .forEach(csvState -> censusMap.get(csvState.state).stateCode = csvState.stateCode);
+            return censusMap;
+           /*
+            while (censusCSVIterator.hasNext()) {
+                IndiaStateCodeCSV indiaStateCodeCSV = censusCSVIterator.next();
+                IndiaCensusDTO indiaCensusDTO = censusMap.get(indiaStateCodeCSV.state);
+                if (indiaCensusDTO==null)
+                    continue;
+            }
+            return censusMap.size();
+            */
         } catch (IOException e) {
             throw new CensusAnalyserException(e.getMessage(),
                     CensusAnalyserException.ExceptionType.CENSUS_FILE_PROBLEM);
