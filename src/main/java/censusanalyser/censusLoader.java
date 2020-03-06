@@ -10,6 +10,16 @@ import java.util.Map;
 import java.util.stream.StreamSupport;
 
 public class censusLoader {
+
+    public Map<String, CensusDTO> loadCensusData(CensusAnalyser.Country country, String... csvFilePath) {
+      if(country.equals(CensusAnalyser.Country.INDIA))
+          return this.loadCensusData(IndiaCensusCSV.class, csvFilePath);
+      else if (country.equals(CensusAnalyser.Country.US))
+          return this.loadCensusData(UsCensusCSV.class,csvFilePath);
+      else
+          throw  new CensusAnalyserException("Invalid Country", CensusAnalyserException.ExceptionType.INVALID_COUNTRY);
+    }
+
     public <E> Map loadCensusData(Class<E> censusCSV, String... csvFilePath) {
         Map<String, CensusDTO> censusMap=new HashMap<>();
        // List<CensusDTO> indiaCensusDTOList;

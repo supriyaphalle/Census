@@ -8,20 +8,22 @@ import java.util.stream.Collectors;
 public class CensusAnalyser {
     Map<String, CensusDTO> censusMap;
     List<CensusDTO> indiaCensusDTOList;
-
+    public enum Country{
+        INDIA,US;
+    }
     public CensusAnalyser() {
         censusMap = new HashMap<>();
     }
 
-    public int loadIndiaCensusData(String... csvFilePath)  {
-        censusMap= new censusLoader().loadCensusData(IndiaCensusCSV.class, csvFilePath);
+    public int loadCensusData(Country country, String... csvFilePath)  {
+        censusMap= new censusLoader().loadCensusData(country, csvFilePath);
       //  indiaCensusDTOList = censusMap.values().stream().collect(Collectors.toList());
         return censusMap.size();
     }
-    public int loadUsCensusData(String usCensusCsvFilePath) {
+    /*public int loadUsCensusData(String usCensusCsvFilePath) {
         censusMap= new censusLoader().loadCensusData(UsCensusCSV.class, usCensusCsvFilePath);
         return censusMap.size();
-    }
+    }*/
 
     public String getStateWiseSortedCensusData(String csvFilePath) {
         indiaCensusDTOList = censusMap.values().stream().collect(Collectors.toList());
@@ -34,7 +36,6 @@ public class CensusAnalyser {
     }
 
     private void sort(Comparator<CensusDTO> censusCSVComparator) {
-
         for (int i = 0; i < indiaCensusDTOList.size() - 1; i++) {
             for (int j = 0; j < indiaCensusDTOList.size() - i - 1; j++) {
                 CensusDTO census1 = indiaCensusDTOList.get(j);
